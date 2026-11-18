@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#141a36">
+<title>❄ 冬日快乐</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='78' font-size='78'%3E%E2%9D%84%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --pink:#ff7fae;
+    --pink-2:#ff9ec7;
+    --pink-3:#ffd0e0;
+    --ink:#4a3f50;
+    --paper:#fffaf1;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    color:#fff;
+    -webkit-tap-highlight-color:transparent;
+    background:
+      radial-gradient(120% 78% at 50% 112%, rgba(255,150,190,.34), transparent 62%),
+      radial-gradient(80% 55% at 84% 6%, rgba(150,170,255,.20), transparent 70%),
+      linear-gradient(180deg,#0d1330 0%,#1a2044 40%,#38335e 70%,#6a5a84 100%);
+  }
+  /* 背景的两团柔光 */
+  .glow{position:fixed;border-radius:50%;filter:blur(60px);pointer-events:none;opacity:.55;}
+  .glow.a{width:46vmin;height:46vmin;left:-12vmin;top:12vmin;background:rgba(140,160,255,.35);}
+  .glow.b{width:52vmin;height:52vmin;right:-16vmin;bottom:-6vmin;background:rgba(255,140,185,.30);}
+
+  #snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+
+  #stage{
+    position:relative;z-index:2;
+    min-height:100vh;
+    min-height:100dvh;
+    display:grid;place-items:center;
+    padding:32px 18px 64px;
+  }
+
+  /* ---------- 像素小贴纸 ---------- */
+  #deco{position:absolute;inset:0;pointer-events:none;}
+  .sticker{
+    position:absolute;
+    background-repeat:no-repeat;background-size:100% 100%;
+    image-rendering:pixelated;
+    opacity:.95;
+    animation:float 7s ease-in-out infinite;
+    filter:drop-shadow(0 8px 14px rgba(10,12,30,.35));
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0) rotate(var(--rot,0deg));}
+    50%{transform:translateY(-9px) rotate(calc(var(--rot,0deg) * 1.6));}
+  }
+
+  /* ---------- 卡片通用 ---------- */
+  .card{
+    position:relative;
+    background:#fffdfa;
+    border-radius:22px;
+    box-shadow:0 30px 70px rgba(6,8,24,.55), 0 1px 0 rgba(255,255,255,.8) inset;
+    overflow:hidden;
+    animation:pop .8s cubic-bezier(.2,.9,.3,1.25) both;
+  }
+  @keyframes pop{
+    from{opacity:0;transform:translateY(16px) scale(.92);}
+    to{opacity:1;transform:none;}
+  }
+
+  /* ---------- 第一幕：来信弹窗 ---------- */
+  #askCard{width:min(362px,86vw);color:var(--ink);}
+  .head{
+    display:flex;align-items:center;gap:8px;
+    padding:12px 18px;
+    background:linear-gradient(100deg,#ff8ab4,#ff9ecb 55%,#ffb3d6);
+    color:#fff;
+    font-size:15px;letter-spacing:.22em;font-weight:700;
+    text-shadow:0 1px 2px rgba(180,60,110,.35);
+  }
+  .head .snow-ico{font-size:16px;filter:drop-shadow(0 0 6px rgba(255,255,255,.8));}
+  .ask-body{padding:28px 22px 24px;text-align:center;}
+  .ask-text{
+    margin:0 0 22px;
+    font-size:16px;line-height:2;color:#4b4054;
+    letter-spacing:.05em;
+  }
+  .btn{
+    width:100%;border:0;cursor:pointer;
+    padding:13px 0;border-radius:12px;
+    font-size:16px;letter-spacing:.4em;text-indent:.4em;font-weight:600;color:#fff;
+    font-family:inherit;
+    background:linear-gradient(180deg,#ff9cc2,#ff6fa4);
+    box-shadow:0 10px 22px rgba(255,111,164,.42), 0 1px 0 rgba(255,255,255,.55) inset;
+    transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+  }
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.04);box-shadow:0 14px 26px rgba(255,111,164,.5);}
+  .btn:active{transform:translateY(1px) scale(.99);}
+
+  /* ---------- 第二幕：来信 ---------- */
+  #letterCard{
+    width:min(408px,90vw);
+    max-height:calc(100vh - 90px);
+    max-height:calc(100dvh - 90px);
+    overflow:auto;
+    scrollbar-width:none;
+    background:linear-gradient(168deg,#fffdf8 0%,#fff8ee 55%,#fdf2e8 100%);
+    padding:30px 26px 26px;
+    color:var(--ink);
+    opacity:0;transform:translateY(18px) scale(.96);
+    transition:opacity .7s ease, transform .7s cubic-bezier(.2,.9,.3,1.2);
+  }
+  #letterCard.in{opacity:1;transform:none;}
+  #letterCard::-webkit-scrollbar{width:0;height:0;}
+  #letterCard::before{
+    content:"❄";position:absolute;right:14px;top:10px;
+    font-size:58px;line-height:1;color:rgba(255,140,180,.16);
+    transform:rotate(-12deg);pointer-events:none;
+  }
+  .letter-tag{
+    display:inline-block;font-size:11px;letter-spacing:.34em;
+    color:#e8809f;margin-bottom:16px;
+  }
+  .letter-body{
+    font-family:"Kaiti SC","KaiTi","STKaiti","楷体",Georgia,serif;
+    font-size:17.5px;line-height:2;
+  }
+  .letter-body p{margin:0 0 6px;}
+  .letter-body .nb{white-space:nowrap;}
+  .letter-body .to{margin-bottom:12px;}
+  .letter-body .quiet{color:#6b5e6d;}
+  .letter-body .end{margin-top:14px;color:#c9557d;font-weight:700;letter-spacing:.06em;}
+  .letter-body .sign{
+    margin-top:18px;text-align:right;color:#8d6f7c;font-size:15.5px;
+  }
+  .letter-body .date{
+    margin-top:4px;text-align:right;color:#b9a2ae;font-size:12.5px;letter-spacing:.18em;
+  }
+  .ln{opacity:0;transform:translateY(10px);transition:opacity .65s ease, transform .65s ease;}
+  .ln.show{opacity:1;transform:none;}
+
+  /* ---------- 底部提示 ---------- */
+  #hint{
+    position:fixed;left:0;right:0;bottom:20px;z-index:3;
+    text-align:center;font-size:12px;letter-spacing:.22em;
+    color:rgba(255,255,255,.55);pointer-events:none;
+    animation:breathe 4.5s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:.9}}
+
+  @media (max-width:430px){
+    #letterCard{width:92vw;padding:26px 20px 22px;}
+    .letter-body{font-size:16px;line-height:1.95;}
+    .ask-text{font-size:15.5px;}
+    #letterCard::before{font-size:44px;}
+  }
+  @media (max-height:600px){
+    #letterCard{padding:22px 20px 20px;}
+    .letter-body{font-size:16px;line-height:1.85;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .sticker{animation:none;}
+    .card{animation:none;}
+    #hint{animation:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="glow a"></div>
+  <div class="glow b"></div>
+  <canvas id="snow"></canvas>
+  <div id="deco"></div>
+
+  <main id="stage">
+    <!-- 第一幕 -->
+    <section class="card" id="askCard">
+      <div class="head"><span class="snow-ico">❄</span><span>冬日快乐</span></div>
+      <div class="ask-body">
+        <p class="ask-text">你有一封冬日来信，<br>确定要打开吗？</p>
+        <button class="btn" id="openBtn">确 定</button>
+      </div>
+    </section>
+
+    <!-- 第二幕 -->
+    <section class="card" id="letterCard" hidden>
+      <div class="letter-tag">❄ 冬 日 来 信</div>
+      <div class="letter-body">
+        <p class="ln to">亲爱的朋友：</p>
+        <p class="ln quiet">比雪先到的，是你的那句<span class="nb">“天冷了”</span>。</p>
+        <p class="ln">那我就把一整个冬天，都<span class="nb">回赠给你</span>。</p>
+        <p class="ln">愿你——</p>
+        <p class="ln">手里常有热饮，心里总有余温；</p>
+        <p class="ln">出门遇见暖阳，回家留一盏灯；</p>
+        <p class="ln">想做的事都赶得上，<span class="nb">想见的人都在身旁</span>。</p>
+        <p class="ln end">冬至快乐，岁岁安暖。</p>
+        <p class="ln sign">—— 你的好朋友</p>
+        <p class="ln date">❄ 冬 · 宜围炉 · 宜想念</p>
+      </div>
+    </section>
+  </main>
+
+  <p id="hint">轻点雪地 · 雪会多一点</p>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= 1. 像素贴纸 ================= */
+  var SPRITES = {
+    catCream: {
+      unit: 4,
+      palette: {"c":"#f3d3ad","d":"#40323f","p":"#f2a0b0","w":"#fff0dc"},
+      rows: [
+        "................",
+        "..cc........cc..",
+        "..cpc......cpc..",
+        "..cccc....cccc..",
+        "..cccccccccccc..",
+        ".cccccccccccccc.",
+        ".cccccccccccccc.",
+        ".ccddccccccddcc.",
+        ".ccddccccccddcc.",
+        ".ccccccppcccccc.",
+        ".cccccccccccccc.",
+        "..cccccccccccc..",
+        "..wwwwwwwwwwww..",
+        ".cwwwwwwwwwwwwc.",
+        ".cwwwwwwwwwwwwc.",
+        "..cccccccccccc.."
+      ]
+    },
+    catGrey: {
+      unit: 4,
+      palette: {"c":"#cdccdf","d":"#39314a","p":"#f0a7bd","w":"#f2f1fa"},
+      rows: [
+        "................",
+        "..cc........cc..",
+        "..cpc......cpc..",
+        "..cccc....cccc..",
+        "..cccccccccccc..",
+        ".cccccccccccccc.",
+        ".cccccccccccccc.",
+        ".ccddccccccddcc.",
+        ".ccddccccccddcc.",
+        ".ccccccppcccccc.",
+        ".cccccccccccccc.",
+        "..cccccccccccc..",
+        "..wwwwwwwwwwww..",
+        ".cwwwwwwwwwwwwc.",
+        ".cwwwwwwwwwwwwc.",
+        "..cccccccccccc.."
+      ]
+    },
+    heart: {
+      unit: 4,
+      palette: {"h":"#ff7fa8"},
+      rows: [
+        ".hh...hh.",
+        "hhhhhhhhh",
+        "hhhhhhhhh",
+        "hhhhhhhhh",
+        ".hhhhhhh.",
+        "..hhhhh..",
+        "...hhh...",
+        "....h...."
+      ]
+    },
+    heartWarm: {
+      unit: 4,
+      palette: {"h":"#ffb27a"},
+      rows: [
+        ".hh...hh.",
+        "hhhhhhhhh",
+        "hhhhhhhhh",
+        "hhhhhhhhh",
+        ".hhhhhhh.",
+        "..hhhhh..",
+        "...hhh...",
+        "....h...."
+      ]
+    }
+  };
+
+  function spriteURL(spec){
+    var rows = spec.rows, palette = spec.palette, unit = spec.unit || 4;
+    var w = rows[0].length, h = rows.length;
+    var cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    var g = cv.getContext("2d");
+    for (var y = 0; y < h; y++){
+      for (var x = 0; x < w; x++){
+        var ch = rows[y].charAt(x);
+        var color = palette[ch];
+        if (!color) continue;
+        g.fillStyle = color;
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+    return cv.toDataURL("image/png");
+  }
+
+  var cache = {};
+  function urlOf(name){
+    if (!cache[name]) cache[name] = spriteURL(SPRITES[name]);
+    return cache[name];
+  }
+
+  var layout = [
+    {s:"catCream", x:"9%",  y:"14%", size:"clamp(40px,7.6vmin,66px)", rot:"-7deg",  delay:".0s"},
+    {s:"catGrey",  x:"80%", y:"22%", size:"clamp(34px,6.2vmin,54px)", rot:"-3deg",  delay:".0s"},
+    {s:"heart",    x:"24%", y:"38%", size:"clamp(16px,2.8vmin,24px)", rot:"6deg",   delay:"1.2s"},
+    {s:"heartWarm",x:"72%", y:"47%", size:"clamp(14px,2.4vmin,20px)", rot:"-8deg",  delay:".6s"},
+    {s:"catCream", x:"16%", y:"76%", size:"clamp(28px,5.2vmin,44px)", rot:"8deg",   delay:".3s"},
+    {s:"heart",    x:"86%", y:"71%", size:"clamp(13px,2.2vmin,18px)", rot:"-4deg",  delay:"1.8s"},
+    {s:"heart",    x:"64%", y:"86%", size:"clamp(11px,1.9vmin,16px)", rot:"10deg",  delay:"2.4s"}
+  ];
+
+  var deco = document.getElementById("deco");
+  layout.forEach(function(item){
+    var d = document.createElement("div");
+    d.className = "sticker";
+    d.style.left = item.x;
+    d.style.top = item.y;
+    d.style.width = item.size;
+    d.style.height = item.size;
+    d.style.backgroundImage = "url(" + urlOf(item.s) + ")";
+    d.style.setProperty("--rot", item.rot);
+    d.style.animationDelay = item.delay;
+    deco.appendChild(d);
+  });
+
+  /* 像素小星星：直接用字符，随机撒一点 */
+  var sparkleBox = document.createElement("div");
+  for (var i = 0; i < 14; i++){
+    var sp = document.createElement("span");
+    sp.textContent = "✦";
+    sp.style.position = "absolute";
+    sp.style.left = (4 + Math.random() * 92) + "%";
+    sp.style.top = (5 + Math.random() * 88) + "%";
+    sp.style.fontSize = (8 + Math.random() * 9) + "px";
+    sp.style.color = "rgba(255," + (220 + Math.random() * 30) + ",255," + (0.20 + Math.random() * 0.35) + ")";
+    sp.style.animation = "breathe " + (3 + Math.random() * 4).toFixed(1) + "s ease-in-out infinite";
+    sp.style.animationDelay = (Math.random() * 4).toFixed(1) + "s";
+    sparkleBox.appendChild(sp);
+  }
+  sparkleBox.style.cssText = "position:absolute;inset:0;pointer-events:none;";
+  deco.appendChild(sparkleBox);
+
+  /* ================= 2. 下雪 ================= */
+  var cvs = document.getElementById("snow");
+  var ctx = cvs.getContext("2d");
+  var W = 0, H = 0, DPR = 1, flakes = [], t = 0, last = 0, boost = 0;
+
+  function rnd(a, b){ return a + Math.random() * (b - a); }
+
+  function makeFlake(y){
+    return {
+      x: rnd(-20, W + 20),
+      y: (y === undefined ? rnd(-H, H) : y),
+      r: rnd(0.7, 2.4),
+      vy: rnd(14, 46),
+      sway: rnd(6, 22),
+      ph: rnd(0, Math.PI * 2),
+      a: rnd(0.28, 0.9),
+      vx: 0
+    };
+  }
+
+  function build(){
+    var target = Math.round(Math.min(190, Math.max(60, W * H / 11000)));
+    if (reduce) target = Math.round(target * 0.4);
+    flakes = [];
+    for (var i = 0; i < target; i++) flakes.push(makeFlake());
+  }
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cvs.width = Math.round(W * DPR);
+    cvs.height = Math.round(H * DPR);
+    cvs.style.width = W + "px";
+    cvs.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    build();
+  }
+
+  function step(now){
+    if (!last) last = now;
+    var dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    t += dt;
+
+    ctx.clearRect(0, 0, W, H);
+
+    var wind = Math.sin(t * 0.35) * 10;
+    for (var i = 0; i < flakes.length; i++){
+      var f = flakes[i];
+      f.y += (f.vy + boost * 26) * dt;
+      f.x += (Math.sin(t * 0.8 + f.ph) * f.sway + wind + f.vx) * dt;
+      f.vx *= 0.985;
+
+      if (f.y > H + 6){
+        if (flakes.length > 200) { flakes.splice(i, 1); i--; continue; }
+        f.y = -6; f.x = rnd(-20, W + 20);
+      }
+      if (f.x < -30) f.x = W + 20;
+      if (f.x > W + 30) f.x = -20;
+
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255," + f.a + ")";
+      ctx.fill();
+
+      if (f.r > 1.9){
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r * 2.4, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,240,250," + (f.a * 0.10) + ")";
+        ctx.fill();
+      }
+    }
+
+    if (boost > 0) boost = Math.max(0, boost - dt * 0.9);
+    requestAnimationFrame(step);
+  }
+
+  function burst(x, y){
+    var n = reduce ? 10 : 28;
+    for (var i = 0; i < n; i++){
+      var f = makeFlake(y);
+      f.x = x + rnd(-16, 16);
+      f.y = y + rnd(-16, 16);
+      f.vx = rnd(-150, 150);
+      f.vy = rnd(6, 80);
+      f.r = rnd(1.0, 2.8);
+      flakes.push(f);
+    }
+    boost = 1;
+  }
+
+  window.addEventListener("resize", resize, {passive: true});
+  document.addEventListener("pointerdown", function(e){
+    burst(e.clientX, e.clientY);
+  }, {passive: true});
+
+  resize();
+  requestAnimationFrame(step);
+
+  /* ================= 3. 打开来信 ================= */
+  var askCard = document.getElementById("askCard");
+  var letterCard = document.getElementById("letterCard");
+  var openBtn = document.getElementById("openBtn");
+  var hint = document.getElementById("hint");
+  var opened = false;
+
+  function chime(){
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var ac = new AC();
+      var t0 = ac.currentTime;
+      [659.25, 783.99, 1046.50].forEach(function(freq, i){
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        var at = t0 + i * 0.17;
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.linearRampToValueAtTime(0.07, at + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0005, at + 1.1);
+        o.connect(g); g.connect(ac.destination);
+        o.start(at); o.stop(at + 1.2);
+      });
+      setTimeout(function(){ try{ ac.close(); }catch(e){} }, 2600);
+    }catch(e){ /* 静音环境就算了 */ }
+  }
+
+  function openLetter(){
+    if (opened) return;
+    opened = true;
+    chime();
+    burst(window.innerWidth / 2, window.innerHeight / 2);
+
+    askCard.style.transition = "opacity .32s ease, transform .32s ease";
+    askCard.style.opacity = "0";
+    askCard.style.transform = "translateY(-10px) scale(.96)";
+
+    setTimeout(function(){
+      askCard.hidden = true;
+      letterCard.hidden = false;
+      letterCard.style.animation = "none";
+      requestAnimationFrame(function(){
+        letterCard.classList.add("in");
+      });
+
+      var lines = letterCard.querySelectorAll(".ln");
+      lines.forEach(function(el, i){
+        setTimeout(function(){ el.classList.add("show"); }, 260 + i * 170);
+      });
+
+      hint.textContent = "❄ 冬天快乐 · 记得也想我一下";
+      hint.style.animation = "none";
+      hint.style.opacity = ".55";
+    }, 300);
+  }
+
+  openBtn.addEventListener("click", openLetter);
+  document.addEventListener("keydown", function(e){
+    if ((e.key === "Enter" || e.key === " ") && !opened){ e.preventDefault(); openLetter(); }
+  });
+})();
+</script>
+</body>
+</html>
